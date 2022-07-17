@@ -1,0 +1,261 @@
+@import '../../theme.scss';
+
+@page {
+    size: a4;
+    margin: 0!important;
+}
+
+body {
+    background-color: #6c757d;
+}
+
+.invoice-box {
+    width: 730px;
+    margin: auto;
+    /*height: 1043px;*/
+    height: auto;
+    padding: 15px;
+
+    /* box-shadow: 0 0 10px rgba(0, 0, 0, .15); */
+    font-size: 16px;
+    line-height: 24px;
+    font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+    color: #555;
+    background-color: #fff;
+    position: relative;
+
+}
+
+.invoice-box table {
+    width: 100%;
+    line-height: inherit;
+    text-align: left;
+}
+
+.invoice-box table td {
+    padding: 5px;
+    vertical-align: top;
+}
+
+.invoice-box table tr td:nth-child(2) {
+    text-align: right;
+}
+
+.invoice-box table tr.top table td {
+    padding-bottom: 20px;
+}
+
+.invoice-box table tr.top table td.title {
+    font-size: 30px;
+    line-height: 45px;
+    color: #333;
+}
+
+.invoice-box table tr.heading td {
+    background: #eee;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.invoice-box table tr.details td {
+    padding-bottom: 20px;
+}
+
+.invoice-box table tr.item td {
+    border-bottom: 1px solid #eee;
+}
+
+.invoice-box table tr.item.last td {
+    border-bottom: none;
+}
+
+.invoice-box table tr.total td:nth-child(2) {
+    border-top: 2px solid #eee;
+    font-weight: bold;
+}
+
+.invoice-box table .note td {
+
+    text-align: center !important;
+    /* padding: 30px; */
+}
+
+/** RTL **/
+.rtl {
+    direction: rtl;
+    font-family: Tahoma, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+}
+
+.rtl table {
+    text-align: right;
+}
+
+.rtl table tr td:nth-child(2) {
+    text-align: left;
+}
+
+.btn-print {
+    padding: 5px;
+    font-size: 20px;
+    width: 70px;
+    background: lightgreen;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    margin: 2px;
+}
+
+.btn-save-invoice {
+    padding: 5px;
+    font-size: 20px;
+    width: 70px;
+    background: lightgreen;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.btn-cross {
+    padding: 5px;
+    font-size: 20px;
+    width: 70px;
+    background-color: #f79e09;
+    color: white;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    margin: 2px;
+    border-radius: 3px;
+}
+
+.btn-delete {
+    padding: 5px;
+    font-size: 21px;
+    width: 70px;
+    background-color: red;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    float: right;
+    border-radius: 3px;
+}
+
+.btn-cross:hover,
+.btn-print:hover,
+.btn-delete:hover,
+.btn-save-invoice:hover {
+    background: #ccc;
+    color: black;
+}
+
+.sign tr td {
+    text-align: center !important;
+}
+
+.line-sign {
+    width: 170px;
+    border-bottom: 1px solid #000;
+    margin: 0 auto;
+}
+
+.button-container {
+    width: 715px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.rounded-circle {
+    /* border-radius:40%!important; */
+}
+
+@font-face {
+    font-family: 'khmer-os-sr';
+    src: url('../../assets/fonts/KHMEROSSIEMREAP.TTF');
+}
+
+@font-face {
+    font-family: 'khmer-os-mo';
+    src: url('../../assets/fonts/KHMEROSMUOLLIGHT.TTF');
+}
+
+.info-text-kh {
+    font-family: 'khmer-os-sr' !important;
+}
+
+.header-text {
+    font-family: 'khmer-os-mo' !important;
+}
+
+.line {
+
+    width: 100%;
+    display: block;
+    background: transparent;
+    width: 100%;
+    border: none;
+    border-top: solid 1px #aaa;
+}
+
+.line-head {
+    height: 4px !important;
+    margin: 0px !important;
+}
+
+.date-to-hide {
+    display: none;
+}
+
+#remark {
+    display: none;
+}
+
+.qr_code {
+    width: 140px;
+    display: block;
+    margin: 0 auto;
+    margin-top: 8px;
+}
+
+.checkpay {
+    width: 15px;
+    cursor: pointer;
+}
+
+.date-hide {
+    display: none;
+}
+
+.status-container {
+    padding: 20px;
+    background: #FFFF;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: brown;
+}
+
+.box-status-opacity {
+    position: absolute;
+    height: auto;
+    padding: 20px;
+    font-size: 70px;
+    /*text-align:center;*/
+    top: 548px;
+    color: red;
+    left: 300px;
+    font-weight: bold;
+    opacity: 0.15;
+    -ms-transform: rotate(-20deg);
+    /* IE 9 */
+    transform: rotate(-20deg);
+    font-family: sans-serif;
+}
+
+#paidDate {
+    font-size: 25px;
+    text-align: center;
+    padding-left: 10px;
+}
