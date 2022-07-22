@@ -1,5 +1,6 @@
-import { getInvoiceByStudent } from "./invoice";
+import { getInvoiceByStudent,saveInvoice,setInvoiceToPaid,deleteInvoice } from "./invoice";
 
 export {
-    getInvoiceByStudent
+    //invoice
+    getInvoiceByStudent,saveInvoice,setInvoiceToPaid,deleteInvoice
 }

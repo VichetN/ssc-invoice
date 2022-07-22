@@ -9,6 +9,12 @@ function App() {
     <div className="App">
       <Router>
         <Routes>
+          {/* <Route path="/studentId=:studentId&invoiceId=:invoiceId">
+            <Route index={true} element={<Invoice />} />
+          </Route> */}
+          <Route path="/studentId=:studentId&invoiceId=:invoiceId&courseId=:courseId">
+            <Route index={true} element={<Invoice />} />
+          </Route>
           <Route path="/studentId=:studentId&invoiceId=:invoiceId">
             <Route index={true} element={<Invoice />} />
           </Route>
