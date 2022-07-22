@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './Invoice.scss'
 import InvoiceLogo from '../../assets/images/invoice-logo.png';
-import AbaQrCode from '../../assets/images/aba_qr_code.png';
+// import AbaQrCode from '../../assets/images/aba_qr_code.png';
 import CheckBoxImage from '../../assets/images/checked.png';
 import UnCheckBoxImage from '../../assets/images/unchecked.png';
 import { useRequest } from 'ahooks';
@@ -11,11 +11,11 @@ import moment from 'moment';
 import { GrMapLocation } from 'react-icons/gr'
 import { MdPhoneIphone } from 'react-icons/md';
 import { GiBank } from 'react-icons/gi'
-import { FaPrint } from 'react-icons/fa'
+import { FaPercent, FaPrint } from 'react-icons/fa'
 import { useReactToPrint } from 'react-to-print';
 import { useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { PuffLoader } from 'react-spinners';
+import { PuffLoader,MoonLoader } from 'react-spinners';
 import { closeTab } from '../../utils/fn';
 
 function Invoice() {
@@ -25,19 +25,22 @@ function Invoice() {
     const [invoiceData, setInvoiceData] = useState(null)
     const [courseData, setCourseData] = useState(null)
     const [paymentType, setPaymentType] = useState('cash')
-    const [rielExchangeRate, setRielExchangeRate] = useState(4000)
+    const [rielExchangeRate, setRielExchangeRate] = useState(0)
     const [discount, setDiscount] = useState(0)
     const [grandTotal, setGrandTotal] = useState(0)
     const [remark, setRemark] = useState(0)
-    const [startDate, setStartDate] = useState(null)
+    const [invoiceDate, setInvoiceDate] = useState(null)
     const [dueDate, setDueDate] = useState(null)
     const [invoiceTime, setInvoiceTime] = useState(null)
+
+    const [startDate, setStartDate] = useState(null)
+    const [endDate, setEndDate] = useState(null)
 
     const [coursePer, setCoursePer] = useState(null)
     const [invoiceCourse, setInvoiceCourse] = useState(null)
 
     const [isEditMode, setIsEditMode] = useState(false)
-    const [isPaid, setIsPaid] = useState(false)
+    const [vatRate, setVatRate] = useState(0)
 
     const printRef = useRef();
 
@@ -56,7 +59,7 @@ function Invoice() {
         fetchData({ studentId: studentId, invoiceId: invoiceId, courseId: courseId ? courseId : '' })
     }
 
-    const { run: runSave } = useRequest(saveInvoice, {
+    const { loading:loadingSave, run: runSave } = useRequest(saveInvoice, {
         manual: true,
         onSuccess: (res) => {
             if (res?.status) {
@@ -67,19 +70,18 @@ function Invoice() {
         },
     });
 
-    const { run: runPayment } = useRequest(setInvoiceToPaid, {
+    const {loading:loadingPay, run: runPayment } = useRequest(setInvoiceToPaid, {
         manual: true,
         onSuccess: (res) => {
             if (res?.status) {
                 fetchInvoice()
                 toast.success(res?.data?.message)
                 setIsEditMode(false)
-
             }
         },
     });
 
-    const { run: runDelete } = useRequest(deleteInvoice, {
+    const { loading:loadingDelete, run: runDelete } = useRequest(deleteInvoice, {
         manual: true,
         onSuccess: (res) => {
             if (res?.status) {
@@ -90,34 +92,56 @@ function Invoice() {
 
     useEffect(() => {
 
-        setIsPaid(invoiceData?.status === 'paid')
+        // setIsPaid(invoiceData?.status === 'paid')
 
         setPaymentType(invoiceData?.pay_type)
         setDiscount(invoiceData?.discount)
         setRemark(invoiceData?.inv_remark)
         setGrandTotal(parseFloat(invoiceData?.price))
+        setRielExchangeRate(parseInt(invoiceData?.rielRate) > 0 ? parseInt(invoiceData?.rielRate) : 4000)
 
         setStartDate(moment().format('YYYY-MM-DD'))
+        setEndDate(moment().add(1, 'months').format('YYYY-MM-DD'))
+
+        setInvoiceDate(moment().format('YYYY-MM-DD'))
         setDueDate(moment().add(1, 'months').format('YYYY-MM-DD'))
 
-        if (invoiceData?.i_enddate !== '' && invoiceData?.i_startdate !== '') {
-            setStartDate(invoiceData?.i_startdate)
-            setDueDate(invoiceData?.i_enddate)
+        if (invoiceData?.end_date !== '0000-00-00' && invoiceData?.start_date !== '0000-00-00') {
+            setStartDate(invoiceData?.start_date)
+            setEndDate(invoiceData?.end_date)
+
+            setInvoiceDate(invoiceData?.start_date)
+            setDueDate(invoiceData?.end_date)
+        }
+
+        if (invoiceData?.created !== '0000-00-00' && invoiceData?.due !== '0000-00-00') {
+            setInvoiceDate(invoiceData?.created)
+            setDueDate(invoiceData?.due)
         }
 
         setInvoiceTime(moment().format('YYYY-MM-DD HH:mm:ss'))
         if (invoiceData?.time !== '00:00:00') {
             setInvoiceTime(`${invoiceData?.created} ${invoiceData?.time}`)
         }
+        console.log(invoiceData)
 
         setCoursePer(invoiceData?.per)
         setInvoiceCourse(invoiceData?.course)
         if (invoiceData?.status !== 'paid') {
             setCoursePer(courseData?.per)
             setInvoiceCourse(`${courseData?.type} (${courseData?.day}) ${courseData?.duration}`)
+            setRemark(invoiceData?.remark)
+
+            return
         }
 
-        console.log(invoiceData)
+        setStartDate(invoiceData?.i_startdate)
+        setEndDate(invoiceData?.i_enddate)
+        if(invoiceData?.paid_date===''){
+            setStartDate(invoiceData?.created)
+            setEndDate(invoiceData?.due)
+        }
+
     }, [invoiceData, courseData])
 
     const getStudentAge = (date) => {
@@ -143,7 +167,7 @@ function Invoice() {
         runSave({
             studentId,
             invoiceId,
-            created: startDate,
+            created: invoiceDate,
             due: dueDate,
             payType: paymentType,
             time: moment(invoiceTime).format('HH:mm:ss'),
@@ -153,7 +177,8 @@ function Invoice() {
             status: invoiceData?.status,
             startDate: startDate,
             endDate: dueDate,
-            per: coursePer
+            per: coursePer,
+            rielRate:rielExchangeRate,
         })
     }
 
@@ -161,7 +186,7 @@ function Invoice() {
         runPayment({
             studentId,
             invoiceId,
-            created: startDate,
+            created: invoiceDate,
             due: dueDate,
             payType: paymentType,
             time: moment(invoiceTime).format('HH:mm:ss'),
@@ -172,7 +197,9 @@ function Invoice() {
             startDate: startDate,
             endDate: dueDate,
             per: coursePer,
-            payment: payment
+            payment: payment,
+            rielRate:rielExchangeRate,
+            vatRate:10
         })
     }
 
@@ -180,17 +207,34 @@ function Invoice() {
         runDelete({ invoiceId: invoiceId })
     }
 
+    const handleVAT = (vatRate) => {
+        setVatRate(parseFloat(vatRate / 100))
+    }
+
+    const getGrandTotal = (total) => {
+        let vat = total * vatRate
+        let grandTotal = total + vat
+
+        return parseFloat(grandTotal)
+    }
+
     if (loading) return <div className='loading-container'><PuffLoader color='#FFFFFF' /></div>
+
+    if (!invoiceData) return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure you click from invoice.</div></div>
+
+    // if (invoiceData?.status === 'paid' && courseId) return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure you click from invoice list.</div></div>
 
     return (
         <>
             <div>
                 <div className="button-container">
+                    <button title="VAT" className="btn-print" style={{ width: 100 }} onClick={() => vatRate > 0 ? handleVAT(0) : handleVAT(10)}>{vatRate > 0 ? '-':'+'} vat | tin</button>
+
                     {
                         !isEditMode ? (
-                            <button title="Edit" onClick={() => setIsEditMode(true)} className="btn-print" id="edit-btn">Edit</button>
+                            <button title="Edit" onClick={() => setIsEditMode(true)} className="btn-print" >Edit</button>
                         ) : (
-                            <button title="Save" className="btn-print" onClick={handleSave} id="edit-btn">Save</button>
+                            <button title="Save" className="btn-print" disabled={loadingSave} onClick={handleSave} >{loadingSave ? <MoonLoader color='#FFFFFF' size={15} />: 'Save'}</button>
                         )
                     }
 
@@ -198,19 +242,20 @@ function Invoice() {
                         courseId ? (
                             invoiceData?.status === 'pending' ?
                                 <>
-                                    <button title="Paid" onClick={() => handlePaid('paid')} className="btn-print disBtn" >Paid</button>
+                                    <button title="Paid" disabled={loadingPay} onClick={() => handlePaid('paid')} className="btn-print" >{loadingPay ? <MoonLoader color='#FFFFFF' size={15} />: 'Paid'}</button>
                                 </>
                                 :
                                 <>
-                                    <button title="Unpay" onClick={() => handlePaid('pending')} className="btn-print disBtn">Unpay</button>
+                                    <button title="Unpay" disabled={loadingPay} onClick={() => handlePaid('pending')} className="btn-print">{loadingPay ? <MoonLoader color='#FFFFFF' size={15} />: 'Unpay'}</button>
                                 </>
                         ) : null
 
                     }
 
                     <button title="Print" onClick={handlePrint} className="btn-print"><FaPrint fontSize={17} /></button>
-                    <button onClick={handleDelete} className="btn-delete">Delete</button>
+                    <button onClick={handleDelete} disabled={loadingDelete} className="btn-delete">{loadingDelete ? <MoonLoader color='#FFFFFF' size={15} />: 'Delete'}</button>
                     <button className="btn-cross" onClick={closeTab}>Close</button>
+
                 </div>
 
                 <div className="invoice-box bg-white " ref={printRef}>
@@ -218,7 +263,7 @@ function Invoice() {
 
                         {
                             invoiceData?.status === 'paid' && (
-                                <div className="box-status-opacity">
+                                <div className="box-status-opacity" style={{top: vatRate > 0 ? 575 : 551}}>
                                     PAID<br />
                                     <span id="paidDate">{moment(invoiceData?.paid_date).format('DD/MMM/YYYY')}</span>
                                 </div>
@@ -254,6 +299,9 @@ function Invoice() {
                             <tbody>
                                 <tr className="information">
                                     <td colSpan={6} style={{ width: '75%!important' }}>
+
+                                        {vatRate > 0 ? <><span className="info-text-kh"><FaPercent /> លេខអត្តសញ្ញាណកម្មសារពើពន្ធ(TIN) ៖ E116-2200002319</span><br /></> : null}
+
                                         <span className="info-text-kh"><GrMapLocation /> ភូមិវត្តបូព៌ សង្កាត់សាលាកំរើក ក្រុងសៀមរាប ខេត្តសៀមរាប</span><br />
                                         <span className="info-text">&emsp; Wat Bo Village, Sangkat Sala Kamreuk, Siem Reap Municipality, Siem Reap Province</span><br />
                                         {/* <span className="info-text-kh">ក្រុង/ស្រុក/ខណ្ឌ សៀមរាប ខេត្ត/រាជធានី សៀមរាប ទូរស័ព្ទ៖ ០១២ ៧៩៧ ០៨៥ / ០១៥ ៣៨២ ៨០៣</span><br /> */}
@@ -303,11 +351,11 @@ function Invoice() {
                                         {
                                             isEditMode ?
                                                 <>
-                                                    <input type="date" id="edit-invoice-date" onChange={(e) => setStartDate(moment(e.target.value).format('YYYY-MM-DD'))} value={startDate} />
+                                                    <input type="date" id="edit-invoice-date" onChange={(e) => setInvoiceDate(moment(e.target.value).format('YYYY-MM-DD'))} value={invoiceDate} />
                                                 </>
                                                 :
                                                 <>
-                                                    <span id="e-invoice-date">{moment(startDate).format('DD-MMM-YYYY')}</span>
+                                                    <span id="e-invoice-date">{moment(invoiceDate).format('DD-MMM-YYYY')}</span>
                                                 </>
                                         }
                                         <br />
@@ -369,7 +417,7 @@ function Invoice() {
                                 </tr>
                                 <tr className="item">
                                     <td>
-                                        {moment(startDate).format('DD-MMM-YYYY')} - {moment(dueDate).format('DD-MMM-YYYY')}
+                                        {moment(startDate).format('DD-MMM-YYYY')} - {moment(endDate).format('DD-MMM-YYYY')}
                                         <br />
                                     </td>
                                     <td>
@@ -413,7 +461,7 @@ function Invoice() {
                                             {
                                                 isEditMode ?
                                                     <>
-                                                        <input type="number" id="discount-input" min={0} onChange={(e) => setDiscount(parseFloat(e.target.value !=='' ? e.target.value:0) )} value={discount} style={{ width: '40%' }} placeholder="% Dis" />
+                                                        <input type="number" onWheel={(e) => e.target.blur()} min={0} onChange={(e) => setDiscount(parseFloat(e.target.value !== '' ? e.target.value : 0))} value={discount} style={{ width: '40%' }} placeholder="% Dis" />
                                                     </>
                                                     :
                                                     <>
@@ -431,11 +479,26 @@ function Invoice() {
 
                         <table cellPadding={0} cellSpacing={0} style={{ fontSize: '13px' }}>
                             <tbody>
+                                {
+                                    vatRate > 0 ?
+                                        <>
+                                            <tr className="total" >
+                                                <td>
+                                                </td>
+                                                <td style={{ width: '50%' }}>
+                                                    <span className="info-text-kh">អាករលើតម្លៃបន្ថែម</span> / <span>VAT ({vatRate * 100}%)</span>
+                                                    <br />
+                                                </td>
+                                            </tr>
+                                        </> : null
+                                }
+
+
                                 <tr className="total" >
                                     <td>
                                     </td>
                                     <td style={{ width: '50%' }}>
-                                        <span className="info-text-kh">សរុប</span> / <span>Grand Total (USD) : <span className="totalPrice">${parseFloat(grandTotal - discount).toFixed(2)}</span></span>
+                                        <span className="info-text-kh">សរុបរួម</span> / <span>Grand Total (USD) : <span className="totalPrice">${parseFloat(getGrandTotal(grandTotal) - discount).toFixed(2)}</span></span>
                                         <br />
                                     </td>
                                 </tr>
@@ -443,7 +506,19 @@ function Invoice() {
                                     <td>
                                     </td>
                                     <td style={{ width: '50%' }}>
-                                        <span className="info-text-kh">អត្រាប្តូរប្រាក់</span> / <span>Exchange Rate 1USD : <span className="totalPrice info-text-kh">4000&#6107;</span></span>
+                                        <span className="info-text-kh">អត្រាប្តូរប្រាក់</span> / <span>Exchange Rate 1USD : 
+                                        {
+                                                isEditMode ?
+                                                    <>
+                                                        <input type="number" onWheel={(e) => e.target.blur()} min={0} onChange={(e) => setRielExchangeRate(parseInt(e.target.value !== '' ? e.target.value : 0))} value={rielExchangeRate} style={{ width: '16%' }} placeholder="xxxxxx" />
+                                                    </>
+                                                    :
+                                                    <>
+                                                        <span className="totalPrice info-text-kh">{rielExchangeRate}&#6107;</span>
+                                                    </>
+                                            }
+                                           
+                                        </span>
                                         <br />
                                     </td>
                                 </tr>
