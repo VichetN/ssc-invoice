@@ -341,7 +341,7 @@ function Invoice() {
                                         <span className="info-text-kh">អតិថិជន</span> / <span className="info-text">Customer</span><br />
                                         <span><b>{`${invoiceData?.st_prefix !== '' ? invoiceData?.st_prefix + '.' : ''} ${invoiceData?.st_name}`}, {getStudentAge(invoiceData?.birthdate)}</b></span><br />
                                         <span className="info-text-kh">អាស័យដ្ឋាន</span> / <span className="info-text">Address</span> : <span>{invoiceData?.address}</span><br />
-                                        <span className="info-text-kh">ទូរស័ព្ទលេខ</span> / <span className="info-text">Tel</span> : <span>092299696</span><br />
+                                        <span className="info-text-kh">ទូរស័ព្ទលេខ</span> / <span className="info-text">Tel</span> : <span>{invoiceData?.contactnumber}</span><br />
                                     </td>
                                     <td style={{ textAlign: 'left', width: '40%' }}>
                                         <span className="info-text-kh">លេខរៀងវិក្កយប័ត្រ</span> / <span className="info-text">Invoice N<sup style={{ fontSize: '10px' }}>o</sup></span> : {invoiceData?.in_id?.toString().padStart(7, '0')}<br />
