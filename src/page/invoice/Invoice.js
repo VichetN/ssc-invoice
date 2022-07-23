@@ -15,8 +15,9 @@ import { FaPercent, FaPrint } from 'react-icons/fa'
 import { useReactToPrint } from 'react-to-print';
 import { useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { PuffLoader,MoonLoader } from 'react-spinners';
-import { closeTab } from '../../utils/fn';
+import { PuffLoader, MoonLoader } from 'react-spinners';
+import { closeTab, getCookie } from '../../utils/fn';
+import Switch from "react-switch";
 
 function Invoice() {
 
@@ -59,7 +60,7 @@ function Invoice() {
         fetchData({ studentId: studentId, invoiceId: invoiceId, courseId: courseId ? courseId : '' })
     }
 
-    const { loading:loadingSave, run: runSave } = useRequest(saveInvoice, {
+    const { loading: loadingSave, run: runSave } = useRequest(saveInvoice, {
         manual: true,
         onSuccess: (res) => {
             if (res?.status) {
@@ -70,7 +71,7 @@ function Invoice() {
         },
     });
 
-    const {loading:loadingPay, run: runPayment } = useRequest(setInvoiceToPaid, {
+    const { loading: loadingPay, run: runPayment } = useRequest(setInvoiceToPaid, {
         manual: true,
         onSuccess: (res) => {
             if (res?.status) {
@@ -81,7 +82,7 @@ function Invoice() {
         },
     });
 
-    const { loading:loadingDelete, run: runDelete } = useRequest(deleteInvoice, {
+    const { loading: loadingDelete, run: runDelete } = useRequest(deleteInvoice, {
         manual: true,
         onSuccess: (res) => {
             if (res?.status) {
@@ -92,13 +93,12 @@ function Invoice() {
 
     useEffect(() => {
 
-        // setIsPaid(invoiceData?.status === 'paid')
-
         setPaymentType(invoiceData?.pay_type)
         setDiscount(invoiceData?.discount)
         setRemark(invoiceData?.inv_remark)
         setGrandTotal(parseFloat(invoiceData?.price))
         setRielExchangeRate(parseInt(invoiceData?.rielRate) > 0 ? parseInt(invoiceData?.rielRate) : 4000)
+        setVatRate(parseInt(invoiceData?.vatRate) > 0 ? parseInt(invoiceData?.vatRate) / 100 : 0)
 
         setStartDate(moment().format('YYYY-MM-DD'))
         setEndDate(moment().add(1, 'months').format('YYYY-MM-DD'))
@@ -123,7 +123,7 @@ function Invoice() {
         if (invoiceData?.time !== '00:00:00') {
             setInvoiceTime(`${invoiceData?.created} ${invoiceData?.time}`)
         }
-        console.log(invoiceData)
+        // console.log(invoiceData)
 
         setCoursePer(invoiceData?.per)
         setInvoiceCourse(invoiceData?.course)
@@ -137,7 +137,7 @@ function Invoice() {
 
         setStartDate(invoiceData?.i_startdate)
         setEndDate(invoiceData?.i_enddate)
-        if(invoiceData?.paid_date===''){
+        if (invoiceData?.paid_date === '') {
             setStartDate(invoiceData?.created)
             setEndDate(invoiceData?.due)
         }
@@ -178,7 +178,8 @@ function Invoice() {
             startDate: startDate,
             endDate: dueDate,
             per: coursePer,
-            rielRate:rielExchangeRate,
+            rielRate: rielExchangeRate,
+            vatRate: vatRate * 100
         })
     }
 
@@ -198,8 +199,8 @@ function Invoice() {
             endDate: dueDate,
             per: coursePer,
             payment: payment,
-            rielRate:rielExchangeRate,
-            vatRate:10
+            rielRate: rielExchangeRate,
+            vatRate: vatRate * 100
         })
     }
 
@@ -208,6 +209,10 @@ function Invoice() {
     }
 
     const handleVAT = (vatRate) => {
+        if (!isEditMode) {
+            toast.warn('Please click edit to change!')
+            return
+        };
         setVatRate(parseFloat(vatRate / 100))
     }
 
@@ -228,13 +233,12 @@ function Invoice() {
         <>
             <div>
                 <div className="button-container">
-                    <button title="VAT" className="btn-print" style={{ width: 100 }} onClick={() => vatRate > 0 ? handleVAT(0) : handleVAT(10)}>{vatRate > 0 ? '-':'+'} vat | tin</button>
 
                     {
                         !isEditMode ? (
                             <button title="Edit" onClick={() => setIsEditMode(true)} className="btn-print" >Edit</button>
                         ) : (
-                            <button title="Save" className="btn-print" disabled={loadingSave} onClick={handleSave} >{loadingSave ? <MoonLoader color='#FFFFFF' size={15} />: 'Save'}</button>
+                            <button title="Save" className="btn-print" disabled={loadingSave} onClick={handleSave} >{loadingSave ? <MoonLoader color='#FFFFFF' size={15} /> : 'Save'}</button>
                         )
                     }
 
@@ -242,19 +246,32 @@ function Invoice() {
                         courseId ? (
                             invoiceData?.status === 'pending' ?
                                 <>
-                                    <button title="Paid" disabled={loadingPay} onClick={() => handlePaid('paid')} className="btn-print" >{loadingPay ? <MoonLoader color='#FFFFFF' size={15} />: 'Paid'}</button>
+                                    <button title="Paid" disabled={loadingPay} onClick={() => handlePaid('paid')} className="btn-print" >{loadingPay ? <MoonLoader color='#FFFFFF' size={15} /> : 'Paid'}</button>
                                 </>
                                 :
                                 <>
-                                    <button title="Unpay" disabled={loadingPay} onClick={() => handlePaid('pending')} className="btn-print">{loadingPay ? <MoonLoader color='#FFFFFF' size={15} />: 'Unpay'}</button>
+                                    <button title="Unpay" disabled={loadingPay} onClick={() => handlePaid('pending')} className="btn-print">{loadingPay ? <MoonLoader color='#FFFFFF' size={15} /> : 'Unpay'}</button>
                                 </>
                         ) : null
 
                     }
 
                     <button title="Print" onClick={handlePrint} className="btn-print"><FaPrint fontSize={17} /></button>
-                    <button onClick={handleDelete} disabled={loadingDelete} className="btn-delete">{loadingDelete ? <MoonLoader color='#FFFFFF' size={15} />: 'Delete'}</button>
+                    <button onClick={handleDelete} disabled={loadingDelete} className="btn-delete">{loadingDelete ? <MoonLoader color='#FFFFFF' size={15} /> : 'Delete'}</button>
                     <button className="btn-cross" onClick={closeTab}>Close</button>
+
+                    <button onClick={() => vatRate > 0 ? handleVAT(0) : handleVAT(10)} className="btn-print" style={{ width: 150 }}>
+                        <Switch
+                            onChange={() => console.log('Click on switch')}
+                            checked={vatRate > 0}
+                            value={vatRate > 0}
+                            className="react-switch"
+                            id="disabled-switch"
+                            height={15}
+                            width={40}
+                        />&emsp;
+                        <span>VAT\TIN</span>
+                    </button>
 
                 </div>
 
@@ -263,7 +280,7 @@ function Invoice() {
 
                         {
                             invoiceData?.status === 'paid' && (
-                                <div className="box-status-opacity" style={{top: vatRate > 0 ? 575 : 551}}>
+                                <div className="box-status-opacity" style={{ top: vatRate > 0 ? 575 : 551 }}>
                                     PAID<br />
                                     <span id="paidDate">{moment(invoiceData?.paid_date).format('DD/MMM/YYYY')}</span>
                                 </div>
@@ -506,8 +523,8 @@ function Invoice() {
                                     <td>
                                     </td>
                                     <td style={{ width: '50%' }}>
-                                        <span className="info-text-kh">អត្រាប្តូរប្រាក់</span> / <span>Exchange Rate 1USD : 
-                                        {
+                                        <span className="info-text-kh">អត្រាប្តូរប្រាក់</span> / <span>Exchange Rate 1USD :
+                                            {
                                                 isEditMode ?
                                                     <>
                                                         <input type="number" onWheel={(e) => e.target.blur()} min={0} onChange={(e) => setRielExchangeRate(parseInt(e.target.value !== '' ? e.target.value : 0))} value={rielExchangeRate} style={{ width: '16%' }} placeholder="xxxxxx" />
@@ -517,7 +534,7 @@ function Invoice() {
                                                         <span className="totalPrice info-text-kh">{rielExchangeRate}&#6107;</span>
                                                     </>
                                             }
-                                           
+
                                         </span>
                                         <br />
                                     </td>
@@ -539,7 +556,7 @@ function Invoice() {
                                     <td style={{ width: '50%', padding: '0px' }}>
                                     </td>
                                     <td style={{ width: '50%', padding: '0px' }}>
-                                        <span>ITADMIN</span>
+                                        <span>{getCookie("is_logged")}</span>
                                     </td>
                                 </tr>
                                 <tr>
