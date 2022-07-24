@@ -182,11 +182,13 @@ body {
 
 @font-face {
     font-family: 'khmer-os-sr';
+    font-display: swap;
     src: url('../../assets/fonts/KHMEROSSIEMREAP.TTF');
 }
 
 @font-face {
     font-family: 'khmer-os-mo';
+    font-display: swap;
     src: url('../../assets/fonts/KHMEROSMUOLLIGHT.TTF');
 }
 

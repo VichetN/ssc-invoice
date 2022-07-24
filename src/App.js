@@ -11,17 +11,17 @@ function App() {
   const [isLogin,setIsLogin] = useState(false)
 
   useEffect(() => {
+    
+    if (getCookie("is_logged")) {
+      setIsLogin(true)
+    } else {
+      window.location.replace('../logout.php')
+      setIsLogin(false)
+    }
 
-    // if (getCookie("is_logged")) {
-    //   setIsLogin(true)
-    // } else {
-    //   window.location.replace('../logout.php')
-    //   setIsLogin(false)
-    // }
+  },[])
 
-  }, [])
-
-  // if(isLogin) return null
+  if(isLogin) return null
 
   return (
     <div className="App">
@@ -30,6 +30,9 @@ function App() {
           {/* <Route path="/studentId=:studentId&invoiceId=:invoiceId">
             <Route index={true} element={<Invoice />} />
           </Route> */}
+          <Route path="/studentId=:studentId&invoiceId=:invoiceId&courseId=:courseId&price=:price">
+            <Route index={true} element={<Invoice />} />
+          </Route>
           <Route path="/studentId=:studentId&invoiceId=:invoiceId&courseId=:courseId">
             <Route index={true} element={<Invoice />} />
           </Route>

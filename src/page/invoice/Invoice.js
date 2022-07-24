@@ -11,7 +11,7 @@ import moment from 'moment';
 import { GrMapLocation } from 'react-icons/gr'
 import { MdPhoneIphone } from 'react-icons/md';
 import { GiBank } from 'react-icons/gi'
-import { FaPercent, FaPrint } from 'react-icons/fa'
+import { FaPrint } from 'react-icons/fa'
 import { useReactToPrint } from 'react-to-print';
 import { useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -96,7 +96,7 @@ function Invoice() {
         setPaymentType(invoiceData?.pay_type)
         setDiscount(invoiceData?.discount)
         setRemark(invoiceData?.inv_remark)
-        setGrandTotal(parseFloat(invoiceData?.price))
+        
         setRielExchangeRate(parseInt(invoiceData?.rielRate) > 0 ? parseInt(invoiceData?.rielRate) : 4000)
         setVatRate(parseInt(invoiceData?.vatRate) > 0 ? parseInt(invoiceData?.vatRate) / 100 : 0)
 
@@ -123,14 +123,16 @@ function Invoice() {
         if (invoiceData?.time !== '00:00:00') {
             setInvoiceTime(`${invoiceData?.created} ${invoiceData?.time}`)
         }
-        // console.log(invoiceData)
 
         setCoursePer(invoiceData?.per)
         setInvoiceCourse(invoiceData?.course)
+        setGrandTotal(parseFloat(invoiceData?.price))
         if (invoiceData?.status !== 'paid') {
             setCoursePer(courseData?.per)
             setInvoiceCourse(`${courseData?.type} (${courseData?.day}) ${courseData?.duration}`)
             setRemark(invoiceData?.remark)
+
+            setGrandTotal(parseFloat(courseData?.price))
 
             return
         }
@@ -152,6 +154,16 @@ function Invoice() {
 
     const printInvoice = useReactToPrint({
         content: () => printRef.current,
+        fonts:[
+            {
+                family:'khmer-os-sr',
+                source:'../../assets/fonts/KHMEROSSIEMREAP.TTF',
+            },
+            {
+                family:'khmer-os-mo',
+                source:'../../assets/fonts/KHMEROSMUOLLIGHT.TTF'
+            }
+        ]
     });
 
     const handlePrint = async () => {
@@ -226,8 +238,10 @@ function Invoice() {
     if (loading) return <div className='loading-container'><PuffLoader color='#FFFFFF' /></div>
 
     if (!invoiceData) return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure you click from invoice.</div></div>
+    
+    if (!courseData && invoiceData?.status!=='paid') return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure student have course.</div></div>
 
-    // if (invoiceData?.status === 'paid' && courseId) return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure you click from invoice list.</div></div>
+    // if (invoiceData?.status === 'paid')  return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure you click from invoice list.</div></div>
 
     return (
         <>
@@ -317,13 +331,13 @@ function Invoice() {
                                 <tr className="information">
                                     <td colSpan={6} style={{ width: '75%!important' }}>
 
-                                        {vatRate > 0 ? <><span className="info-text-kh"><FaPercent /> លេខអត្តសញ្ញាណកម្មសារពើពន្ធ(TIN) ៖ E116-2200002319</span><br /></> : null}
+                                        {vatRate > 0 ? <><span className="info-text-kh"><GiBank /> លេខអត្តសញ្ញាណកម្មសារពើពន្ធ(TIN) ៖ E116-2200002319</span><br /></> : null}
 
                                         <span className="info-text-kh"><GrMapLocation /> ភូមិវត្តបូព៌ សង្កាត់សាលាកំរើក ក្រុងសៀមរាប ខេត្តសៀមរាប</span><br />
                                         <span className="info-text">&emsp; Wat Bo Village, Sangkat Sala Kamreuk, Siem Reap Municipality, Siem Reap Province</span><br />
                                         {/* <span className="info-text-kh">ក្រុង/ស្រុក/ខណ្ឌ សៀមរាប ខេត្ត/រាជធានី សៀមរាប ទូរស័ព្ទ៖ ០១២ ៧៩៧ ០៨៥ / ០១៥ ៣៨២ ៨០៣</span><br /> */}
                                         {/* <span className="info-text">Town/District/Khan Siem Reap, Siem Reap Province Tel: 012 797 085 / 015 382 803</span><br /> */}
-                                        <span className="info-text"><MdPhoneIphone /> Email: srsurvivalswim@gmail.com / Facebook : Survival Swim Club</span><br /><br />
+                                        <span className="info-text"><MdPhoneIphone /> +855(0)89 868 766 / srsurvivalswim@gmail.com / FB: Survival Swim Club</span><br /><br />
 
                                         <span className="info-text"><GiBank /> The Advanced Bank of Asia Limited</span><br />
                                         <span className="info-text">&emsp;&nbsp; Account Name: <b>Survival Swim Club</b></span><br />
@@ -429,7 +443,7 @@ function Invoice() {
                                         <span id="course">{invoiceCourse}</span>
                                     </td>
                                     <td>
-                                        ${parseFloat(invoiceData?.price).toFixed(2)}/{coursePer}
+                                        ${parseFloat(grandTotal).toFixed(2)}/{coursePer}
                                     </td>
                                 </tr>
                                 <tr className="item">
@@ -556,7 +570,7 @@ function Invoice() {
                                     <td style={{ width: '50%', padding: '0px' }}>
                                     </td>
                                     <td style={{ width: '50%', padding: '0px' }}>
-                                        <span>{getCookie("is_logged")}</span>
+                                        <span>{getCookie("is_logged")?.toUpperCase()}</span>
                                     </td>
                                 </tr>
                                 <tr>
