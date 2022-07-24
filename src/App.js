@@ -11,8 +11,8 @@ function App() {
   const [isLogin,setIsLogin] = useState(false)
 
   useEffect(() => {
-    
-    if (getCookie("is_logged")) {
+
+    if (!!getCookie("is_logged")) {
       setIsLogin(true)
     } else {
       window.location.replace('../logout.php')
@@ -21,18 +21,15 @@ function App() {
 
   },[])
 
-  if(isLogin) return null
+  if(!isLogin) return null
 
   return (
     <div className="App">
       <Router>
         <Routes>
-          {/* <Route path="/studentId=:studentId&invoiceId=:invoiceId">
+          {/* <Route path="/studentId=:studentId&invoiceId=:invoiceId&courseId=:courseId&price=:price">
             <Route index={true} element={<Invoice />} />
           </Route> */}
-          <Route path="/studentId=:studentId&invoiceId=:invoiceId&courseId=:courseId&price=:price">
-            <Route index={true} element={<Invoice />} />
-          </Route>
           <Route path="/studentId=:studentId&invoiceId=:invoiceId&courseId=:courseId">
             <Route index={true} element={<Invoice />} />
           </Route>

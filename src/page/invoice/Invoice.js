@@ -52,7 +52,9 @@ function Invoice() {
                 setCourseData(res?.data?.course)
             }
         },
-        // pollingInterval: 60000,
+        onError:(err)=>{
+            console.log(err.message)
+        },
         defaultParams: [{ studentId: studentId, invoiceId: invoiceId, courseId: courseId }]
     });
 
@@ -68,7 +70,7 @@ function Invoice() {
                 toast.success(res?.data?.message)
                 setIsEditMode(false)
             }
-        },
+        }
     });
 
     const { loading: loadingPay, run: runPayment } = useRequest(setInvoiceToPaid, {
@@ -123,6 +125,9 @@ function Invoice() {
         if (invoiceData?.time !== '00:00:00') {
             setInvoiceTime(`${invoiceData?.created} ${invoiceData?.time}`)
         }
+
+        console.log(invoiceData)
+        console.log(courseData)
 
         setCoursePer(invoiceData?.per)
         setInvoiceCourse(invoiceData?.course)
@@ -240,8 +245,6 @@ function Invoice() {
     if (!invoiceData) return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure you click from invoice.</div></div>
     
     if (!courseData && invoiceData?.status!=='paid') return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure student have course.</div></div>
-
-    // if (invoiceData?.status === 'paid')  return <div className='loading-container' style={{ color: '#FFFFFF' }}><div style={{ textAlign: 'center' }}><h3>Something wrong!</h3>Please make sure you click from invoice list.</div></div>
 
     return (
         <>
